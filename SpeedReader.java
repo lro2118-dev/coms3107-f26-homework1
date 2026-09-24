@@ -6,47 +6,123 @@
  * @author Chris Murphy
  */
 
+import java.util.Scanner;
+import java.io.FileNotFoundException;
+import java.io.File;
+
+
+
 public class SpeedReader {
 
     /*
     This method is responsible for updating the text in the window for the speed reader.
     You will need to change the parameters as you complete this part of the assignment.
      */
-    public static void show() {
+    public static void show(String file, int wordsPerMin) {
 
-        // this sets up the window... don't forget to call it!
+        Scanner reader;
+
+        try {
+            File textFile = new File(file);
+            reader = new Scanner(textFile);
+        } catch (FileNotFoundException e) {
+            System.out.println("Error reading file");
+            return;
+        }
+
         setup();
 
-        // this represents the number to be displayed in the window
-        int count = 0;
+        int wait = getWait(wordsPerMin);
+       
 
-        while (true) { // this is an infinite loop but it's fine for now!
+       while (reader.hasNext() == true) { 
 
-            // increment the number to display on each iteration of the loop
-            count++;
+            waitForMouse();
 
-            // this places the text in the center of the screen
-            // the coordinate (50, 50) is used for the center of the text
-            StdDraw.text(50, 50, String.valueOf(count));
+            String word = reader.next();
 
-            // this displays the text
+            drawWord(word);
+
+            // KEEP the same basic display steps from the starter
             StdDraw.show();
 
-            // this causes the program to wait for 500ms
-            StdDraw.pause(500);
+            // CHANGE 500 to our calculated wait
+            StdDraw.pause(wait);
 
-            // this removes everything that is being displayed
+            // KEEP this
             StdDraw.clear();
 
         }
 
+        reader.close();
+
     }
 
-    /*
-    This method sets up the window for the speed reader.
-    You should not need to change anything here!
-    Please speak to the Instructor if you think any change is necessary.
-     */
+   private static int getWait(int wordsPerMin) {
+
+        int wait = 60000 / wordsPerMin;
+
+        return wait;
+    }
+
+
+    private static void waitForMouse() {
+
+        while (StdDraw.isMousePressed() == false) {
+            StdDraw.pause(10);
+        }
+    }
+
+
+    private static String getMiddleLetter(String word) {
+
+        int middle = word.length() / 2;
+
+        char letter = word.charAt(middle);
+
+        String middleLetter = String.valueOf(letter);
+
+        return middleLetter;
+    }
+
+
+    private static double getWordX(String word) {
+
+        double center = 50;
+        double letterWidth = 7.5;
+
+        double x = center;
+
+        boolean even = word.length() % 2 == 0;
+
+        if (even == true) {
+            x = center - (letterWidth / 2);
+        }
+
+        return x;
+    }
+
+
+    private static void drawWord(String word) {
+
+        double centerX = 50;
+        double centerY = 50;
+
+        String middleLetter = getMiddleLetter(word);
+
+        double wordX = getWordX(word);
+
+        StdDraw.setPenColor(StdDraw.BLACK);
+        StdDraw.text(wordX, centerY, word);
+
+        StdDraw.setPenColor(StdDraw.RED);
+        StdDraw.text(centerX, centerY, middleLetter);
+    }
+
+
+
+
+
     private static void setup() {
         // this creates a window of 800x600 pixels
         StdDraw.setCanvasSize(800, 400);
@@ -67,8 +143,33 @@ public class SpeedReader {
 
 
     public static void main(String[] args) {
-        // modify this code as needed in order to pass arguments to the show() method
-        show();
+         boolean correctInputs = args.length == 2;
+
+    if (correctInputs == false) {
+        System.out.println("Please specify the file name and wpm");
+        return;
+    }
+
+    String file = args[0];
+
+    int wordsPerMin;
+
+    try {
+        wordsPerMin = Integer.parseInt(args[1]);
+    } catch (NumberFormatException e) {
+        System.out.println("Please specify a positive wpm");
+        return;
+    }
+
+    boolean positiveWpm = wordsPerMin > 0;
+
+    if (positiveWpm == false) {
+        System.out.println("Please specify a positive wpm");
+        return;
+    }
+
+    show(file, wordsPerMin);
+    
     }
     
 }
